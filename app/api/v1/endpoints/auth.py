@@ -80,29 +80,29 @@ async def google_auth(request: Request, auth_data: GoogleAuth, db: Session = Dep
             detail=f"Google auth error: {str(e)}"
         )
 
-    # Check for existing user by google_id OR email
-    user = db.query(User).filter(User.google_id == google_id).first()
+    try:
+        # Check for existing user by google_id OR email
+        user = db.query(User).filter(User.google_id == google_id).first()
 
-    if not user:
-        # User doesn't exist by google_id, check if they exist by email
-        user = db.query(User).filter(User.email == email).first()
-        
-        if user:
-            # User exists with this email (from previous email/password registration)
-            logger.info(f"Linking Google OAuth to existing user: {email}")
-            # Update their google_id to link their Google account
-            user.google_id = google_id
-            user.profile_picture = picture or user.profile_picture
-            user.verified = "True"  # Google OAuth counts as verified
-            db.commit()
-            db.refresh(user)
-        else:
-            # Completely new user, create from Google OAuth
-            logger.info(f"Creating new user from Google OAuth: {email}")
-            try:
+        if not user:
+            # User doesn't exist by google_id, check if they exist by email
+            user = db.query(User).filter(User.email == email).first()
+            
+            if user:
+                # User exists with this email (from previous email/password registration)
+                logger.info(f"Linking Google OAuth to existing user: {email}")
+                # Update their google_id to link their Google account
+                user.google_id = google_id
+                user.profile_picture = picture or user.profile_picture
+                user.verified = "True"  # Google OAuth counts as verified
+                db.commit()
+                db.refresh(user)
+            else:
+                # Completely new user, create from Google OAuth
+                logger.info(f"Creating new user from Google OAuth: {email}")
                 user = User(
                     email=email,
-                    name=name,
+                    name=name or email.split("@")[0],  # Fallback name from email
                     google_id=google_id,
                     profile_picture=picture,
                     verified="True",  # Google has already verified the email
@@ -111,38 +111,33 @@ async def google_auth(request: Request, auth_data: GoogleAuth, db: Session = Dep
                 db.add(user)
                 db.commit()
                 db.refresh(user)
-                logger.info(f" New Google user created: {user.id}")
-            except Exception as e:
-                db.rollback()
-                logger.error(f" Failed to create Google user: {str(e)}", exc_info=True)
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Failed to create user: {str(e)}"
-                )
-    else:
-        logger.info(f"Existing Google user found: {user.id}")
+                logger.info(f"✅ New Google user created: {user.id}")
+        else:
+            logger.info(f"Existing Google user found: {user.id}")
 
-    try:
         access_token = create_access_token(str(user.id))
         refresh_token = create_refresh_token(str(user.id))
-        logger.info(f" Tokens created for user: {user.id}")
+        logger.info(f"✅ Tokens created for user: {user.id}")
+
+        return AuthResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user=UserResponse(
+                id=user.id,
+                email=user.email,
+                name=user.name,
+                profile_picture=user.profile_picture
+            )
+        )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f" Failed to create tokens: {str(e)}", exc_info=True)
+        db.rollback()
+        logger.error(f"❌ Google auth database error: {type(e).__name__}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create tokens: {str(e)}"
+            detail=f"Google auth failed: {str(e)}"
         )
-
-    return AuthResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        user=UserResponse(
-            id=user.id,
-            email=user.email,
-            name=user.name,
-            profile_picture=user.profile_picture
-        )
-    )
  
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")

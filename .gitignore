@@ -4,48 +4,33 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
 # Virtual environments
-.venv/
 venv/
 env/
 ENV/
+.venv/
 
-# Environment variables (CRITICAL - never commit secrets)
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environment variables (NEVER COMMIT SECRETS)
 .env
 .env.*
+
 !.env.example
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
-*.sublime-project
-*.sublime-workspace
+.mypy_cache/
+.dmypy.json
 
 # Testing
 .pytest_cache/
@@ -54,46 +39,24 @@ htmlcov/
 .tox/
 .hypothesis/
 
-# IDEs
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
 # Database
 *.db
 *.sqlite3
-postgresql.conf
-
-# Alembic
-alembic.ini.local
-
-# Environment variables (CRITICAL - never commit .env)
-.env
-.env.production
-.env.staging
-.env.development
-
-# Media files (uploaded files)
-media/
-uploads/
-temp/
-tmp/
 
 # Logs
 *.log
 logs/
 
-# OS
+# Media / uploads
+media/
+uploads/
+temp/
+tmp/
+
+# OS files
 .DS_Store
-.AppleDouble
-.LSOverride
 Thumbs.db
 
-# Node (if any frontend build in backend folder)
+# Node (if used)
 node_modules/
 npm-debug.log
-
-# Misc
-*.bak
-*.tmp
-.cache/

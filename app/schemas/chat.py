@@ -2,7 +2,8 @@ from pydantic import BaseModel, ConfigDict, field_validator
  
 from typing import Optional, Literal
 from uuid import UUID
-from app.core .constants import DEFAULT_CHAT_TITLE
+from app.core.constants import DEFAULT_CHAT_TITLE
+from app.core.time_utils import get_unix_timestamp
 
 class ChatSessionCreate(BaseModel):
     title: Optional[str] = DEFAULT_CHAT_TITLE
@@ -13,9 +14,16 @@ class ChatSessionUpdate(BaseModel):
 class ChatSessionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    title: str
+    title: Optional[str] = DEFAULT_CHAT_TITLE
     created_at: int
     updated_at: int
+
+    @field_validator("created_at", "updated_at", mode="before")
+    @classmethod
+    def convert_timestamp_to_int(cls, v):
+        if v is None:
+            return get_unix_timestamp()
+        return int(v) if isinstance(v, (int, float, str)) else v
 
 class MessageCreate(BaseModel):
     message:Optional[str]=None
@@ -40,6 +48,13 @@ class MessageResponse(BaseModel):
     file_type: Optional[str] = None
     created_at: int
     updated_at: int
+    
+    @field_validator("created_at", "updated_at", mode="before")
+    @classmethod
+    def convert_timestamp_to_int(cls, v):
+        if v is None:
+            return get_unix_timestamp()
+        return int(v) if isinstance(v, (int, float, str)) else v
     
     @field_validator("file", mode="before")
     @classmethod

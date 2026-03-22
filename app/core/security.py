@@ -179,17 +179,42 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"}
     )
     
-    payload = _decode_token(token)
-    user_id: str = payload.get("sub")
-    token_type = payload.get("type")
+    try:
+        payload = _decode_token(token)
+        user_id: str = payload.get("sub")
+        token_type = payload.get("type")
 
-    if user_id is None or token_type != "access":
-        raise credentials_exception
-    
-     
-    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+        if user_id is None or token_type != "access":
+            raise credentials_exception
+        
+        # Convert user_id string to UUID
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except (ValueError, AttributeError) as e:
+            logger.error(f"Invalid user_id format in token: {user_id}, error: {e}")
+            raise credentials_exception
+        
+        # Query database for user
+        try:
+            user = db.query(User).filter(User.id == user_uuid).first()
+        except Exception as e:
+            logger.error(f"Database error when querying user {user_id}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error"
+            )
 
-    if user is None:
-        raise credentials_exception
-    
-    return user
+        if user is None:
+            logger.warning(f"User not found in database: {user_id}")
+            raise credentials_exception
+        
+        return user
+    except HTTPException:
+        # Re-raise HTTP exceptions (401s, 500s, etc)
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in get_current_user: {type(e).__name__}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication error"
+        )

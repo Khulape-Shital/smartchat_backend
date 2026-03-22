@@ -2,6 +2,7 @@
 
 A powerful, production-ready AI chat backend built with **FastAPI**, **PostgreSQL**, and **Google Gemini API**. Features real-time streaming responses, file processing, RAG (Retrieval Augmented Generation), user authentication, and email verification.
 
+ 
 ## 🚀 Features
 
 - ✅ **Streaming Chat API** - Real-time responses with Server-Sent Events (SSE)

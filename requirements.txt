@@ -23,7 +23,7 @@ PyPDF2==3.0.1
 slowapi==0.1.9
 
 # AI (safe versions)
-google-generativeai==0.3.2
+google-genai>=0.1.0
 
 # ⚠️ REMOVE this if deploy fails again
 # sentence-transformers==2.2.0

@@ -11,7 +11,6 @@ from uuid import UUID
 import logging
 from app.core.time_utils import get_unix_timestamp
 from google import genai
-import google.generativeai as genai
 from google.genai import types
 import PyPDF2
 from io import BytesIO

@@ -14,7 +14,7 @@ class ChatSession(Base):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    title = Column(String(255))
+    title = Column(String(255), default="New Chat", nullable=False)
     created_at = Column(BIGINT, default=get_unix_timestamp)
     updated_at = Column(BIGINT, default=get_unix_timestamp, onupdate=get_unix_timestamp)
     messages = relationship("Message", back_populates="chat", cascade="all,delete-orphan")

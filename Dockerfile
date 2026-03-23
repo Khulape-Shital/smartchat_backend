@@ -1,19 +1,23 @@
 # Stage 1: Build
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies
+# System dependencies (needed for building packages like psycopg2, Pillow, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    postgresql-client \
+    build-essential \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
+# Copy requirements first (better caching)
 COPY requirements.txt .
 
-# Create wheels for faster installation in final image
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+# Upgrade pip (IMPORTANT for wheel builds)
+RUN pip install --upgrade pip setuptools wheel
+
+# Build wheels
+RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
 
 
 # Stage 2: Runtime
@@ -21,8 +25,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies only
+# Runtime system dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,18 +35,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
-# Install Python dependencies from wheels
-RUN pip install --no-cache /wheels/*
+# Install Python dependencies
+RUN pip install --no-cache-dir /wheels/*
 
-# Copy application
+# Copy application code
 COPY . .
 
-# Set environment variables
+# Environment variables
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
+ENV PORT=8080
 
-# Expose port
-EXPOSE 8000
+# Cloud Run requires 8080
+EXPOSE 8080
 
-# Run migrations and start the server
-CMD ["sh", "-c", "alembic upgrade head && gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120"]
+# Run migrations + server
+CMD ["sh", "-c", "alembic upgrade head && exec gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8080 --timeout 120"]

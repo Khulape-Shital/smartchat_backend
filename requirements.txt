@@ -9,7 +9,8 @@ bcrypt==4.0.1
 python-multipart==0.0.6
 python-jose[cryptography]==3.3.0
 
-pydantic==1.10.13
+pydantic==2.5.3
+pydantic-settings==2.1.0
  
 
 redis==5.0.1
@@ -22,8 +23,7 @@ Pillow==11.0.0
 PyPDF2==3.0.1
 slowapi==0.1.9
 
-# AI (safe versions)
-google-genai>=0.1.0
+ 
 
 # ⚠️ REMOVE this if deploy fails again
 # sentence-transformers==2.2.0

@@ -21,11 +21,7 @@ from app.utils.rag import initialize_embeddings_model
  
 logger = logging.getLogger(__name__)
 
-# [CRITICAL] create_all is a dev shortcut and is unsafe in production.
-# It never alters or drops existing columns on schema drift.
-# SUGGESTION: Remove this line and rely exclusively on Alembic migrations.
-# Run: alembic upgrade head on deployment.
-# Base.metadata.create_all(bind=engine)  # REMOVED -- use Alembic migrations
+ 
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -57,11 +53,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# [CRITICAL] CORS origins are hardcoded constants, not environment-driven.
-# allow_credentials=True combined with broad origins is a security misconfiguration.
-# SUGGESTION: Load allowed origins from settings (environment variable) and restrict
-# to the exact deployed frontend origin in production.
-# Add CORS middleware
+ 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -73,10 +65,7 @@ app.add_middleware(
 # Include API router with /api prefix
 app.include_router(api_router, prefix="/api")
 
-
-# [LOW] No /health endpoint. A GET /health that also pings the DB is essential
-# for load balancers, container orchestration, and monitoring systems.
-# SUGGESTION: Add @app.get("/health") that checks DB connectivity and returns status.
+ 
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
     """

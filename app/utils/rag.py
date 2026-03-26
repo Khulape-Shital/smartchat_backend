@@ -6,8 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 import logging
 
 logger = logging.getLogger(__name__)
-
-# [HIGH] Model loaded lazily with singleton pattern - optimize with startup initialization
+ 
 _embedding_model = None
 
 def initialize_embeddings_model():

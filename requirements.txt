@@ -25,5 +25,4 @@ slowapi==0.1.9
 # AI (safe versions)
 google-genai>=0.1.0
 
-# ⚠️ REMOVE this if deploy fails again
-# sentence-transformers==2.2.0
+ 

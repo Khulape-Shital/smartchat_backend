@@ -84,7 +84,7 @@ Title:"""
             # Clean the response
             generated_title = title_response.text.strip()
             
-            # Remove quotes, asterisks, and markdown formatting
+          
             for char in ['"', "'", '*', '#', '_', '`']:
                 generated_title = generated_title.replace(char, '')
             
@@ -98,9 +98,9 @@ Title:"""
         # Validation: ensure title is reasonable
         if not generated_title or len(generated_title) > 100:
             logger.warning(f"Invalid title generated: '{generated_title}'. Using fallback.")
-            # Fallback: create title from first words of message
+          
             if user_text and len(user_text.strip()) > 0:
-                words = user_text.strip().split()[:7]  # First 7 words max
+                words = user_text.strip().split()[:7]  
                 generated_title = " ".join(words)
                 if len(user_text.strip()) > len(generated_title):
                     generated_title += "..."
@@ -109,7 +109,7 @@ Title:"""
             else:
                 generated_title = DEFAULT_CHAT_TITLE
 
-        # Update session with generated title
+       
         session = db.query(ChatSession).filter(ChatSession.id == chat_id).first()
         if session:
             session.title = generated_title
@@ -120,8 +120,7 @@ Title:"""
         
     except Exception as e:
         logger.error(f"❌ Background title generation failed for chat {chat_id}: {str(e)}")
-        # Don't raise - background tasks should not crash the stream
-        # Title will remain as DEFAULT_CHAT_TITLE
+         
 
 @router.get("/chats", response_model=List[ChatSessionResponse])
 async def list_chats(
@@ -287,7 +286,7 @@ async def send_message(
             detail=ERROR_MESSAGE_OR_FILE_REQUIRED
         )
     
-    # Limit history to the last 20 messages for efficiency and context window limits
+ 
     existing_messages = db.query(Message).filter(
         Message.chat_id == chat_id
     ).order_by(Message.created_at.desc()).limit(20).all()
@@ -318,9 +317,9 @@ async def send_message(
         try:
             content_parts = []
 
-            # =========================
+           
             #  FILE HANDLING
-            # =========================
+        
             if file:
                 file_type = file.content_type
                 os.makedirs(CHAT_FILES_DIR, exist_ok=True)
@@ -412,7 +411,7 @@ async def send_message(
 
             # If no file was attached, use user_text as the content with RAG context if available
             if not file and user_text:
-                # [OPTIMIZATION] Retrieve relevant context from vector database if documents exist
+                
                 rag_context = ""
                 try:
                     relevant_chunks = await asyncio.to_thread(
@@ -446,9 +445,9 @@ async def send_message(
                 contents = content_parts[0]
             else:
                 contents = content_parts
-            # =========================
+     
             #  GEMINI CALL
-            # =========================
+        
             if gemini_history:
                 chat_session = client.chats.create(model=GEMINI_MODEL, history=gemini_history)
                 response = chat_session.send_message_stream(contents)

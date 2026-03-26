@@ -38,7 +38,7 @@ def chunk_text(text: str) -> list[str]:
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
-        separators=["\n\n", "\n", ".", " ", ""],  # sentence → word fallback
+        separators=["\n\n", "\n", ".", " ", ""], 
     )
 
     return text_splitter.split_text(text)
@@ -52,7 +52,7 @@ def store_chunks(db, chat_id, user_id, text):
     - Uses SentenceTransformer's batch processing which is ~2-3x faster
     - Still requires db.commit() to be called by the endpoint
     """
-    # Convert string UUIDs to UUID objects if needed
+     
     if isinstance(chat_id, str):
         chat_id = uuid.UUID(chat_id)
     if isinstance(user_id, str):
@@ -66,9 +66,7 @@ def store_chunks(db, chat_id, user_id, text):
     
     embedding_model = get_embeddings_model()
     
-    # [OPTIMIZATION] Batch encode all chunks at once instead of 1-by-1
-    # SentenceTransformer.encode() with list input uses batches internally
-    # This is 2-3x faster than looping and calling encode() for each chunk
+   
     logger.info(f"Batch encoding {len(chunks)} chunks for chat {chat_id}...")
     embeddings = embedding_model.encode(chunks, batch_size=32, show_progress_bar=False)
     
@@ -98,7 +96,7 @@ def retrieve_chunks(db, chat_id, user_id, question, TOP_K):
     - Uses pgvector L2 distance for semantic similarity
     - Filters by user_id for security
     """
-    # Convert string UUIDs to UUID objects if needed
+ 
     if isinstance(chat_id, str):
         chat_id = uuid.UUID(chat_id)
     if isinstance(user_id, str):
@@ -106,13 +104,12 @@ def retrieve_chunks(db, chat_id, user_id, question, TOP_K):
     
     embedding_model = get_embeddings_model()
     
-    # [OPTIMIZATION] Single encode call for the query
+ 
     query_embedding = embedding_model.encode(question, show_progress_bar=False).tolist()
-
-    # Query the database with vector similarity search
+ 
     results = db.query(DocumentChunk).filter(
         DocumentChunk.chat_id == chat_id,
-        DocumentChunk.user_id == user_id  # Security: Only user's own chunks
+        DocumentChunk.user_id == user_id 
     ).order_by(
         DocumentChunk.embedding.l2_distance(query_embedding)
     ).limit(TOP_K).all()

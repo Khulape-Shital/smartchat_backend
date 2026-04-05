@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# [HIGH] Model loaded lazily with singleton pattern - optimize with startup initialization
+ 
 _embedding_model = None
 
 def initialize_embeddings_model():
@@ -67,9 +67,7 @@ def store_chunks(db, chat_id, user_id, text):
     
     embedding_model = get_embeddings_model()
     
-    # [OPTIMIZATION] Batch encode all chunks at once instead of 1-by-1
-    # SentenceTransformer.encode() with list input uses batches internally
-    # This is 2-3x faster than looping and calling encode() for each chunk
+ 
     logger.info(f"Batch encoding {len(chunks)} chunks for chat {chat_id}...")
     embeddings = embedding_model.encode(chunks, batch_size=32, show_progress_bar=False)
     
@@ -79,7 +77,7 @@ def store_chunks(db, chat_id, user_id, text):
             chat_id=chat_id,
             user_id=user_id,
             content=chunk,
-            embedding=embedding.tolist()  # Convert numpy array to list for pgvector
+            embedding=embedding.tolist()  
         )
         db.add(doc)
     
@@ -107,13 +105,13 @@ def retrieve_chunks(db, chat_id, user_id, question, TOP_K):
     
     embedding_model = get_embeddings_model()
     
-    # [OPTIMIZATION] Single encode call for the query
+ 
     query_embedding = embedding_model.encode(question, show_progress_bar=False).tolist()
 
     # Query the database with vector similarity search
     results = db.query(DocumentChunk).filter(
         DocumentChunk.chat_id == chat_id,
-        DocumentChunk.user_id == user_id  # Security: Only user's own chunks
+        DocumentChunk.user_id == user_id   
     ).order_by(
         DocumentChunk.embedding.l2_distance(query_embedding)
     ).limit(TOP_K).all()

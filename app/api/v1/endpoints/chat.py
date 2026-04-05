@@ -318,9 +318,9 @@ async def send_message(
         try:
             content_parts = []
 
-            # =========================
+             
             #  FILE HANDLING
-            # =========================
+ 
             if file:
                 file_type = file.content_type
                 os.makedirs(CHAT_FILES_DIR, exist_ok=True)

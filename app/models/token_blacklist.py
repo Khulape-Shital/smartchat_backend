@@ -14,14 +14,14 @@ class RefreshTokenBlacklist(Base):
     __tablename__ = "refresh_token_blacklist"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    jti = Column(String(255), unique=True, nullable=False, index=True)  # JWT ID from token
+    jti = Column(String(255), unique=True, nullable=False, index=True)   
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     revoked_at = Column(BIGINT, default=get_unix_timestamp, nullable=False)
     expires_at = Column(BIGINT, nullable=False)  # Token expiration time for cleanup
 
     user = relationship("User", foreign_keys=[user_id])
 
-    # Composite index for efficient queries: user_id + jti lookup
+    
     __table_args__ = (
         Index('idx_blacklist_user_jti', 'user_id', 'jti'),
     )

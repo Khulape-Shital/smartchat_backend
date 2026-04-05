@@ -15,6 +15,6 @@ class EmailVerificationToken(Base):
     email = Column(String(255), nullable=False)
     created_at = Column(BIGINT, default=get_unix_timestamp)
     expires_at = Column(BIGINT, nullable=False)
-    verified_at = Column(BIGINT, nullable=True)  # Timestamp when email was verified, None if not yet verified
+    verified_at = Column(BIGINT, nullable=True)   
 
     user = relationship("User", foreign_keys=[user_id])

@@ -47,7 +47,7 @@ def _decode_token(token: str) -> dict:
 def create_access_token(user_id: str) -> str:
     """Create access token with expiration and JTI for revocation tracking."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    jti = str(uuid.uuid4())  # Unique token ID for revocation tracking
+    jti = str(uuid.uuid4())  
   
     payload = {
         "sub": str(user_id),

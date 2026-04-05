@@ -16,7 +16,7 @@ try:
         socket_connect_timeout=1, 
         socket_timeout=1,
     )
-    # Don't test on startup - test lazily when actually used
+ 
     redis_available = True
 except Exception as e:
     logger.warning(f"Redis initialization failed: {e}. Rate limiting will be disabled.")
@@ -27,7 +27,7 @@ def session_limiter(chat_id: str):
     Raises HTTP 429 if SESSION_LIMIT is exceeded within EXPIRY_SECONDS.
     Silently skips limiting if Redis is unavailable (degrades gracefully).
     """
-    # Skip limiting if Redis is not available
+    
     if not redis_available or r is None:
         return
     

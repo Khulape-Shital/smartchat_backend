@@ -15,6 +15,5 @@ class PasswordResetToken(Base):
     email = Column(String(255), nullable=False)
     created_at = Column(BIGINT, default=get_unix_timestamp)
     expires_at = Column(BIGINT, nullable=False)
-    used = Column(BIGINT, nullable=True)  # Timestamp when token was used, None if not used yet
-
+    used = Column(BIGINT, nullable=True)   
     user = relationship("User", foreign_keys=[user_id])
